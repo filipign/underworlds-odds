@@ -21,11 +21,17 @@ class RollCharacteristic():
         self.characteristic = characteristic
         self.supports = supports
 
+class RollResult():
+    '''Stores result of single roll of 2 players'''
+    def __init__(self, attack_dices=[], defence_dices=[]):
+        self.attack_dices = attack_dices
+        self.defence_dices = defence_dices
 
-attack_dice = (Attack.hammer, Attack.hammer, Attack.swords,
-               Attack.single_support, Attack.double_support, Attack.crit)
-defence_dice = (Defence.shield, Defence.shield, Defence.dodge,
-                Defence.single_support, Defence.double_support, Defence.crit)
+
+attack_dice = [Attack.hammer, Attack.hammer, Attack.swords,
+               Attack.single_support, Attack.double_support, Attack.crit]
+defence_dice = [Defence.shield, Defence.shield, Defence.dodge,
+                Defence.single_support, Defence.double_support, Defence.crit]
 
 def check_success(attack_result, defence_result, attack_characteristic, def_characteristic,
                   modificators):
@@ -77,23 +83,57 @@ def check_success(attack_result, defence_result, attack_characteristic, def_char
     else:
         return CombatResult.failed
 
-def generate_rolls(attack_dices, defence_dices):
+# def generate_rolls(attack_roll_characteristic, defence_roll_characteristic):
+#     '''
+#     Generate list of all possible outcomes of dices rolls
+
+#     Args:
+#         attack_roll_characteristic(obj of RollCharacteristic): characteristic of roll for attacker,
+#             what is consdered success and how many dices
+#         defence_roll_characteristic(obj of RollCharacteristic): characteristic of roll for defender,
+#             what is consdered success and how many dices
+#     '''
+
+def generate_rolls(no_attack_dices, no_defence_dices):
     '''
     Generate list of all possible outcomes of dices rolls
 
     Args:
-        attack_dices(int):
-        defence_dices(int):
+        no_attack_dices(int): number of attacking dices
+        no_defence_dices(int): number of defending dices
 
     Returns:
-        List of lists: all possible outcomes of dices roll
+        List of obj of RollResult: all possible outcomes of dices roll
     '''
+    import itertools
 
-def find_odds():
+    rolls = []
+    all_attack_dices = []
+    all_defence_dices = []
+
+    all_attack_dices = [attack_dice for i in range(no_attack_dices)]
+    all_defence_dices = [defence_dice for i in range(no_defence_dices)]
+
+    for attack_roll in itertools.product(*all_attack_dices):
+        for defence_roll in itertools.product(*all_defence_dices):
+            roll = RollResult(attack_roll, defence_roll)
+            rolls.append(roll)
+
+    # TODO: to delete, left for debugging purposes
+    for i, roll in enumerate(rolls):
+        print('-- #%d --' % i)
+        print(roll.attack_dices)
+        print(roll.defence_dices)
+        print('--------')
+    print(len(rolls))
+
+    return rolls
+
+def calculate_odds():
     pass
 
 def main():
-    pass
+    generate_rolls(2, 1)
 
 if __name__ == '__main__':
     main()
