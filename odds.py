@@ -3,16 +3,32 @@ from enum import Enum
 from characteristics import Attack
 from characteristics import Defence
 
-class Result(Enum):
+class CombatResult(Enum):
     success = 1
     driven_back = 0
     failed = -1
 
-attack_dice = ('hammer', 'hammer', 'swords', 'single_support' 'double_support', 'crit_attack')
-defence_dice = ('shield', 'shield', 'dodge', 'single_support' 'double_support', 'crit_defence')
+class AttackModificators():
+    '''Stores values of attack modificators such as cleave'''
+    def __init__(self, cleave=False, cleave_on_crit=False):
+        self.cleave = cleave
+        self.cleave_on_crit = cleave_on_crit
 
-def check_success(attack_result, defence_result, attack_characteristic, def_characteristic, 
-                  cleave=False, cleave_on_crit=False):
+class RollCharacteristic():
+    '''Stores values of roll characteristics for generating purposes'''
+    def __init__(self, characteristic, number_of_dices, supports=0):
+        self.number_of_dices = number_of_dices
+        self.characteristic = characteristic
+        self.supports = supports
+
+
+attack_dice = (Attack.hammer, Attack.hammer, Attack.swords,
+               Attack.single_support, Attack.double_support, Attack.crit)
+defence_dice = (Defence.shield, Defence.shield, Defence.dodge,
+                Defence.single_support, Defence.double_support, Defence.crit)
+
+def check_success(attack_result, defence_result, attack_characteristic, def_characteristic,
+                  modificators):
     '''
     For given attack and defensive characteristics, and dices result, check
     if attack is successfull, failed or failed but targeted fighter may be driven back
@@ -21,11 +37,10 @@ def check_success(attack_result, defence_result, attack_characteristic, def_char
         defence_result(list of strings): result of dice roll for defnder
         attack_characteris(list of strings): what counts as success for attacker
         def_characteris(list of strings): what counts as success for defender
-        cleave(bool): is attack action with cleave
-        cleave_on_crit(bool): is attack action with cleave when attacker rolls crit
+        modificators(obj of AttackModificators): bools of atack modificators such as cleave
 
     Returns:
-        Result: one of Result values
+        obj of CombatResult: one of Result values
     '''
     atk_critical_success = 0
     atk_success = 0
@@ -39,27 +54,43 @@ def check_success(attack_result, defence_result, attack_characteristic, def_char
             else:
                 atk_success += 1
 
-    if not cleave:
-        cleave = atk_critical_success > 0 and cleave_on_crit
+    if not modificators.cleave:
+        modificators.cleave = atk_critical_success > 0 and modificators.cleave_on_crit
 
     for defence in defence_result:
         if defence in def_characteristic:
             if defence == Defence.crit:
                 def_critical_success += 1
-            elif not (cleave and defence == Defence.shield):    
+            elif not (modificators.cleave and defence == Defence.shield):
                 def_success += 1
 
+    # TODO: Left for debugging purposes, to delete
     # print('atk: %s/%s; def: %s/%s' % (atk_critical_success, atk_success, def_critical_success, def_success))
     if atk_critical_success > def_critical_success:
-        return Result.success
+        return CombatResult.success
     if atk_critical_success == def_critical_success:
         if atk_success > def_success:
-            return Result.success
+            return CombatResult.success
         if atk_success == def_success:
-            return Result.driven_back
-        return Result.failed
+            return CombatResult.driven_back
+        return CombatResult.failed
     else:
-        return Result.failed
+        return CombatResult.failed
+
+def generate_rolls(attack_dices, defence_dices):
+    '''
+    Generate list of all possible outcomes of dices rolls
+
+    Args:
+        attack_dices(int):
+        defence_dices(int):
+
+    Returns:
+        List of lists: all possible outcomes of dices roll
+    '''
+
+def find_odds():
+    pass
 
 def main():
     pass
