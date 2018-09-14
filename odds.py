@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from enum import Enum
 from characteristics import Attack
 from characteristics import Defence
@@ -10,9 +11,8 @@ class Result(Enum):
 attack_dice = ('hammer', 'hammer', 'swords', 'single_support' 'double_support', 'crit_attack')
 defence_dice = ('shield', 'shield', 'dodge', 'single_support' 'double_support', 'crit_defence')
 
-def check_success(attack_result, defence_result, 
-               attack_characteristic, def_characteristic, 
-               cleave=False, cleave_on_crit=False):
+def check_success(attack_result, defence_result, attack_characteristic, def_characteristic, 
+                  cleave=False, cleave_on_crit=False):
     '''
     For given attack and defensive characteristics, and dices result, check
     if attack is successfull, failed or failed but targeted fighter may be driven back
@@ -31,6 +31,7 @@ def check_success(attack_result, defence_result,
     atk_success = 0
     def_critical_success = 0
     def_success = 0
+
     for attack in attack_result:
         if attack in attack_characteristic:
             if attack == Attack.crit:
@@ -48,7 +49,7 @@ def check_success(attack_result, defence_result,
             elif not (cleave and defence == Defence.shield):    
                 def_success += 1
 
-    print('atk: %s/%s; def: %s/%s' % (atk_critical_success, atk_success, def_critical_success, def_success))
+    # print('atk: %s/%s; def: %s/%s' % (atk_critical_success, atk_success, def_critical_success, def_success))
     if atk_critical_success > def_critical_success:
         return Result.success
     if atk_critical_success == def_critical_success:
