@@ -10,9 +10,11 @@ class CombatResult(Enum):
 
 class AttackModificators():
     '''Stores values of attack modificators such as cleave'''
-    def __init__(self, cleave=False, cleave_on_crit=False):
+    def __init__(self, cleave=False, cleave_on_crit=False, light_armor=False, guard=False):
         self.cleave = cleave
         self.cleave_on_crit = cleave_on_crit
+        self.light_armor = light_armor
+        self.guard = guard
 
 class RollCharacteristic():
     '''Stores values of roll characteristics for generating purposes'''
@@ -65,35 +67,27 @@ def check_success(attack_result, defence_result, attack_characteristic, def_char
 
     for defence in defence_result:
         if defence in def_characteristic:
+            # TODO: light armor and guard implementation
+            # if defence == Defence.crit and modificators.light_armor not False:
             if defence == Defence.crit:
                 def_critical_success += 1
             elif not (modificators.cleave and defence == Defence.shield):
                 def_success += 1
 
     # TODO: Left for debugging purposes, to delete
-    # print('atk: %s/%s; def: %s/%s' % (atk_critical_success, atk_success, def_critical_success, def_success))
+    print('(crit/normal) atk: %s/%s; def: %s/%s' % (atk_critical_success, atk_success, def_critical_success, def_success))
     if atk_critical_success > def_critical_success:
         return CombatResult.success
     if atk_critical_success == def_critical_success:
         if atk_success > def_success:
             return CombatResult.success
-        if atk_success == def_success:
+        elif atk_success == def_success and (atk_success > 0 or atk_critical_success > 0):
             return CombatResult.driven_back
         return CombatResult.failed
     else:
         return CombatResult.failed
 
-# def generate_rolls(attack_roll_characteristic, defence_roll_characteristic):
-#     '''
-#     Generate list of all possible outcomes of dices rolls
-
-#     Args:
-#         attack_roll_characteristic(obj of RollCharacteristic): characteristic of roll for attacker,
-#             what is consdered success and how many dices
-#         defence_roll_characteristic(obj of RollCharacteristic): characteristic of roll for defender,
-#             what is consdered success and how many dices
-#     '''
-
+# TODO: consider using python generators
 def generate_rolls(no_attack_dices, no_defence_dices):
     '''
     Generate list of all possible outcomes of dices rolls
@@ -120,20 +114,68 @@ def generate_rolls(no_attack_dices, no_defence_dices):
             rolls.append(roll)
 
     # TODO: to delete, left for debugging purposes
-    for i, roll in enumerate(rolls):
-        print('-- #%d --' % i)
-        print(roll.attack_dices)
-        print(roll.defence_dices)
-        print('--------')
-    print(len(rolls))
-
+    # for i, roll in enumerate(rolls):
+    #     print('-- #%d --' % i)
+    #     print(roll.attack_dices)
+    #     print(roll.defence_dices)
+    #     print('--------')
+    # print(len(rolls))
     return rolls
 
-def calculate_odds():
-    pass
+def generate_dice_characterstic(characteristic):
+    '''
+    Determine what is considered success based on main characteristics
+
+    Args:
+        characteristic(Attack/Defence enum): main characteristic of attack/defence
+
+    Returns:
+        list of Attack/Defence enum values
+    '''
+    if isinstance(characteristic, Attack):
+        return [characteristic, Attack.crit]
+    else:
+        return [characteristic, Defence.crit]
+
+
+def calculate_odds(attack_characteristic, defence_characteristic, modificators):
+    '''
+    Calculate odds of succesfull attack action
+
+    Args:
+        attack_characteristic(obj of RollCharacteristic): characteristic of attack roll,
+            what is consdered success and how many dices
+        defence_characteristic(obj of RollCharacteristic): characteristic of defence roll,
+            what is consdered success and how many dices
+        modificators(obj of AttackModificators): bools of atack modificators such as cleave
+    '''
+    rolls = generate_rolls(attack_characteristic.number_of_dices,
+                           defence_characteristic.number_of_dices)
+
+    results = {
+        CombatResult.success: 0,
+        CombatResult.driven_back: 0,
+        CombatResult.failed: 0
+    }
+    for roll in rolls:
+        outcome = check_success(roll.attack_dices, roll.defence_dices,
+                                attack_characteristic.characteristic,
+                                defence_characteristic.characteristic,
+                                modificators)
+        print(outcome)
+        results[outcome] += 1
+    odds = {
+        'success': results[CombatResult.success] / len(rolls),
+        'driven_back': (results[CombatResult.driven_back]) / len(rolls)
+    }
+    return odds
+
 
 def main():
-    generate_rolls(2, 1)
+    atk = RollCharacteristic(generate_dice_characterstic(Attack.swords), 1, 0)
+    deff = RollCharacteristic(generate_dice_characterstic(Defence.shield), 1, 0)
+    modificators = AttackModificators(cleave=False)
+    print(calculate_odds(atk, deff, modificators))
 
 if __name__ == '__main__':
     main()
