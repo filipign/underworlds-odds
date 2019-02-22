@@ -1,11 +1,12 @@
 #!/usr/bin/python3
 import logging
+from lib.characteristics import Attack
+from lib.characteristics import Defence
 from lib.odds import RollCharacteristic
 from lib.odds import calculate_odds
 from lib.odds import AttackModificators
 from lib.odds import generate_dice_characterstic
-from lib.characteristics import Attack
-from lib.characteristics import Defence
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('main_logger')
